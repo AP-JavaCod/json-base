@@ -14,11 +14,10 @@ public class JSONParser {
 		JSONObject json = new JSONObject();
 		while(index < text.length() && text.charAt(index) != '}') {
 			index++;
-			int v = positionElement(index, text);
-			if(v == -1) {
+			index = positionElement(index, text);
+			if(index == -1) {
 				throw new JSONParserException("no end sumbol }");
 			}
-			index = v;
 			char el = text.charAt(index);
 			if(el == '}') {
 				break;
@@ -26,6 +25,9 @@ public class JSONParser {
 			String value = getKeyValue(index, text);
 			index += value.length();
 			json.add(parseKeyValue(value));
+		}
+		if(index == text.length()) {
+			throw new JSONParserException("no end sumbol }");
 		}
 		return json;
 	}
@@ -45,6 +47,9 @@ public class JSONParser {
 			String value = getValue(index, text);
 			index += value.length();
 			json.add(parseValue(value));
+		}
+		if(index == text.length()) {
+			throw new JSONParserException("no end sumbol ]");
 		}
 		return json;
 	}
@@ -135,13 +140,17 @@ public class JSONParser {
 		return new JSONObject.KeyValue(key, val);
 	}
 	
-	private static String getValueString(int index, String value) {
+	private static String getValueString(int index, String value) throws JSONParserException {
 		String result = "\"";
 		boolean isStr = true;
 		for(int i = index + 1; i < value.length(); i++) {
 			char el = value.charAt(i);
-			if(!isStr && (el == ',' || el == '}' || el == ']')) {
-				break;
+			if(!isStr) {
+				if(el == ',' || el == '}' || el == ']') {
+					break;
+				}else if(!isIndent(el)) {
+					throw new JSONParserException(i);
+				}
 			}else if(el == '"') {
 				isStr = false;
 			}else if(el == '\\') {
@@ -154,13 +163,17 @@ public class JSONParser {
 		return result;
 	}
 	
-	private static String getValueObject(int index, String value) {
+	private static String getValueObject(int index, String value) throws JSONParserException{
 		String result = "{";
 		boolean isObject = true;
 		for(int i = index + 1; i < value.length(); i++) {
 			char el = value.charAt(i);
-			if(!isObject && (el == ',' || el == '}' || el == ']')) {
-				break;
+			if(!isObject) {
+				if(el == ',' || el == '}' || el == ']') {
+					break;
+				}else if(!isIndent(el)) {
+					throw new JSONParserException(i);
+				}
 			}else if(el == ',' || el == ']' || isIndent(el)) {
 				result += el;
 			}else if(el == '}') {
@@ -175,13 +188,17 @@ public class JSONParser {
 		return result;
 	}
 	
-	private static String getValueArray(int index, String value) {
+	private static String getValueArray(int index, String value) throws JSONParserException {
 		String result = "[";
 		boolean isArray = true;
 		for(int i = index + 1; i < value.length(); i++) {
 			char el = value.charAt(i);
-			if(!isArray && (el == ',' || el == '}' || el == ']')) {
-				break;
+			if(!isArray) {
+				if(el == ',' || el == '}' || el == ']') {
+					break;
+				}else if(!isIndent(el)) {
+					throw new JSONParserException(i);
+				}
 			}else if(el == ',' || el == '}' || isIndent(el)) {
 				result += el;
 			}else if(el == ']'){
@@ -196,19 +213,24 @@ public class JSONParser {
 		return result;
 	}
 	
-	private static String getValueOther(int index, String value) {
+	private static String getValueOther(int index, String value) throws JSONParserException {
 		String result = "";
+		boolean isOther = true;
 		for(int i = index; i < value.length(); i++) {
 			char el = value.charAt(i);
 			if(el == ',' || el == '}' || el == ']') {
 				break;
+			}else if(!isOther && !isIndent(el)) {
+				throw new JSONParserException(i);
+			}else if(isIndent(el)) {
+				isOther = false;
 			}
 			result += el;
 		}
 		return result;
 	}
 	
-	private static String getValue(int index, String value) {
+	private static String getValue(int index, String value) throws JSONParserException {
 		return switch(value.charAt(index)) {
 		case '"' -> getValueString(index, value);
 		case '{' -> getValueObject(index, value);
@@ -217,7 +239,7 @@ public class JSONParser {
 		};
 	}
 	
-	private static String getKeyValue(int index, String value) {
+	private static String getKeyValue(int index, String value) throws JSONParserException {
 		String result = "\"";
 		boolean isStr = true;
 		boolean isValue = false;
