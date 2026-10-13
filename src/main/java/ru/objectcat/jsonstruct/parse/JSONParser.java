@@ -6,33 +6,44 @@ import ru.objectcat.jsonstruct.JSONParserException;
 
 public class JSONParser {
 	
-	public static JSONObject parseObject(String text) {
-		String jsonStr = getBody(text, '{', '}');
-		int size = jsonStr.length();
+	public static JSONObject parseObject(String text) throws JSONParserException{
+		int index = positionStart(0, text, '{');
+		if(index == -1) {
+			throw new JSONParserException("no initial submol {");
+		}
 		JSONObject json = new JSONObject();
-		for(int i = 0; i < size; i++) {
-			char el = jsonStr.charAt(i);
-			if(isIndent(el)) {
-				continue;
+		while(index < text.length() && text.charAt(index) != '}') {
+			index++;
+			int v = positionElement(index, text);
+			if(v == -1) {
+				throw new JSONParserException("no end sumbol }");
 			}
-			String value = getKeyValue(i, jsonStr);
-			i += value.length();
+			index = v;
+			char el = text.charAt(index);
+			if(el == '}') {
+				break;
+			}
+			String value = getKeyValue(index, text);
+			index += value.length();
 			json.add(parseKeyValue(value));
 		}
 		return json;
 	}
 	
-	public static JSONArray parseArray(String text) {
-		String jsonStr = getBody(text, '[', ']');
-		int size = jsonStr.length();
+	public static JSONArray parseArray(String text) throws JSONParserException {
+		int index = positionStart(0, text, '[');
+		if(index == -1) {
+			throw new JSONParserException("no initial sumbol [");
+		}
 		JSONArray json = new JSONArray();
-		for(int i = 0; i < size; i++) {
-			char el = jsonStr.charAt(i);
-			if(isIndent(el)) {
-				continue;
+		while(index < text.length() && text.charAt(index) != ']') {
+			index++;
+			index = positionElement(index, text);
+			if(index == -1) {
+				throw new JSONParserException("no end sumbol ]");
 			}
-			String value = getValue(i, jsonStr);
-			i += value.length();
+			String value = getValue(index, text);
+			index += value.length();
 			json.add(parseValue(value));
 		}
 		return json;
@@ -75,7 +86,7 @@ public class JSONParser {
 		return Double.parseDouble(pars);
 	}
 	
-	private static Object parseValue(String value) {
+	private static Object parseValue(String value) throws JSONParserException{
 		return switch(value.charAt(0)) {
 		case '"' -> parseString(value);
 		case '{' -> parseObject(value);
@@ -84,18 +95,20 @@ public class JSONParser {
 		};
 	}
 	
-	private static JSONObject.KeyValue parseKeyValue(String value){
-		int size = value.length();
+	private static JSONObject.KeyValue parseKeyValue(String text) throws JSONParserException{
+		int size = text.length();
 		String keyPars = null;
 		int i = 0;
 		boolean isKey = true;
 		for(; i < size; i++) {
-			char el = value.charAt(i);
+			char el = text.charAt(i);
 			if(!isKey) {
-				if(isIndent(el)) {
+				if(el == ':') {
+					break;
+				}else if(isIndent(el)) {
 					continue;
 				}
-				break;
+				throw new JSONParserException(i);
 			}else if(isIndent(el)) {
 				continue;
 			}else if(el != '"') {
@@ -103,19 +116,20 @@ public class JSONParser {
 			}
 			i++;
 			keyPars = "\"";
-			boolean isStr = true;
 			for(; i < size; i++) {
-				char v = value.charAt(i);
-				if(!isStr && v == ':') {
+				char v = text.charAt(i);
+				if(v == '"') {
 					isKey = false;
 					break;
-				}else if(v == '"') {
-					isStr = false;
+				}else if(v == '\\') {
+					i++;
+					v = text.charAt(i);
 				}
 				keyPars += v;
 			}
 		}
-		String valPars = value.substring(i);
+		i = positionElement(i + 1, text);
+		String valPars = text.substring(i);
 		String key = parseString(keyPars);
 		Object val = parseValue(valPars);
 		return new JSONObject.KeyValue(key, val);
@@ -226,22 +240,9 @@ public class JSONParser {
 		return result;
 	}
 	
-	private static String getBody(String text, char start, char end) {
-		int startPos = positionStart(text, start);
-		if(startPos == -1) {
-			throw new JSONParserException("no initial submol '" + start + "'");
-		}
-		int endPos = positionEnd(text, end);
-		if(endPos == -1) {
-			throw new JSONParserException("no end submol '" + end + "'");
-		}
-		String value = text.substring(startPos + 1, endPos - 1);
-		return value;
-	}
-	
-	private static int positionStart(String text, char start) {
-		int i = 0;
-		for(char el : text.toCharArray()) {
+	private static int positionStart(int index, String text, char start) throws JSONParserException {
+		for(int i = index; i < text.length(); i++) {
+			char el = text.charAt(i);
 			if(el == start) {
 				return i;
 			}else if(!isIndent(el)) {
@@ -252,13 +253,11 @@ public class JSONParser {
 		return -1;
 	}
 	
-	private static int positionEnd(String text, char end) {
-		for(int i = text.length(); i > 0; i--) {
-			char el = text.charAt(i - 1);
-			if(el == end) {
+	private static int positionElement(int index, String text) {
+		for(int i = index; i < text.length(); i++) {
+			char el = text.charAt(i);
+			if(!isIndent(el)) {
 				return i;
-			}else if(!isIndent(el)) {
-				throw new JSONParserException(i);
 			}
 		}
 		return -1;

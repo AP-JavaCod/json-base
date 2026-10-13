@@ -16,7 +16,7 @@ public class JSONArray extends ArrayList<Object> {
 		return array;
 	}
 	
-	public static JSONArray prse(String text) {
+	public static JSONArray prse(String text) throws JSONParserException{
 		return JSONParser.parseArray(text);
 	}
 	

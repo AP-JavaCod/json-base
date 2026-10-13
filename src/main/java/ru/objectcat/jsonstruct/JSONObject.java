@@ -8,7 +8,7 @@ import ru.objectcat.jsonstruct.parse.JSONParser;
 
 public class JSONObject extends HashMap<String, Object> implements Iterable<JSONObject.KeyValue> {
 	
-	public static JSONObject parse(String text) {
+	public static JSONObject parse(String text) throws JSONParserException {
 		return JSONParser.parseObject(text);
 	}
 	
@@ -51,6 +51,8 @@ public class JSONObject extends HashMap<String, Object> implements Iterable<JSON
 			return value;
 		}else if(value instanceof JSONObject j) {
 			return j.getValue(index + 1, path);
+		}else if(value instanceof JSONAdapter a) {
+			return a.toJSON().getValue(index + 1, path);
 		}
 		return null;
 	}

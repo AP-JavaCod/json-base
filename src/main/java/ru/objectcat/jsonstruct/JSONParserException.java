@@ -1,6 +1,6 @@
 package ru.objectcat.jsonstruct;
 
-public class JSONParserException extends RuntimeException{
+public class JSONParserException extends Exception{
 	
 	public JSONParserException(String message) {
 		super(message);
