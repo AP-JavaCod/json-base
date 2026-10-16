@@ -17,9 +17,7 @@ public class JSONParser {
 			index = positionElement(index, text);
 			if(index == -1) {
 				throw new JSONParserException("no end sumbol '}'");
-			}
-			char el = text.charAt(index);
-			if(el == '}') {
+			}else if(text.charAt(index) == '}') {
 				break;
 			}
 			String value = getKeyValue(index, text);
@@ -47,6 +45,8 @@ public class JSONParser {
 			index = positionElement(index, text);
 			if(index == -1) {
 				throw new JSONParserException("no end sumbol ']'");
+			}else if(text.charAt(index) == ']') {
+				break;
 			}
 			String value = getValue(index, text);
 			index += value.length();
@@ -103,36 +103,16 @@ public class JSONParser {
 	
 	private static JSONObject.KeyValue parseKeyValue(String text) throws JSONParserException{
 		int size = text.length();
-		String keyPars = null;
-		int i = 0;
-		boolean isKey = true;
+		String keyPars = getValueString(0, text);
+		int i = keyPars.length();
 		for(; i < size; i++) {
 			char el = text.charAt(i);
-			if(!isKey) {
-				if(el == ':') {
-					break;
-				}else if(isIndent(el)) {
-					continue;
-				}
-				throw new JSONParserException(i);
+			if(el == ':') {
+				break;	
 			}else if(isIndent(el)) {
-				continue;
-			}else if(el != '"') {
-				throw new JSONParserException(i);
+				continue;	
 			}
-			i++;
-			keyPars = "\"";
-			for(; i < size; i++) {
-				char v = text.charAt(i);
-				if(v == '"') {
-					isKey = false;
-					break;
-				}else if(v == '\\') {
-					i++;
-					v = text.charAt(i);
-				}
-				keyPars += v;
-			}
+			throw new JSONParserException(i);
 		}
 		i = positionElement(i + 1, text);
 		String valPars = text.substring(i);
@@ -216,22 +196,15 @@ public class JSONParser {
 	}
 	
 	private static String getKeyValue(int index, String value) throws JSONParserException {
-		String result = "\"";
-		boolean isStr = true;
+		String result = getValueString(index, value);
 		boolean isValue = false;
-		for(int i = index + 1; i < value.length(); i++) {
+		for(int i = index + result.length(); i < value.length(); i++) {
 			char el = value.charAt(i);
-			if(!isStr && el == ':') {
+			if(el == ':') {
 				isValue = true;
 			}else if(!isIndent(el) && isValue){
 				result += getValue(i, value);
 				break;
-			}else if(el == '"') {
-				isStr = false;
-			}else if(el == '\\') {
-				result += el;
-				i++;
-				el = value.charAt(i);
 			}
 			result += el;
 		}
@@ -261,11 +234,13 @@ public class JSONParser {
 		return -1;
 	}
 	
-	private static int positionEnd(int index, String text) {
+	private static int positionEnd(int index, String text) throws JSONParserException{
 		for(int i = index; i < text.length(); i++) {
 			char el = text.charAt(i);
 			if(el == ',' || el == '}' || el == ']' ) {
 				return i;
+			}else if(!isIndent(el)) {
+				throw new JSONParserException(i);
 			}
 		}
 		return -1;
