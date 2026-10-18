@@ -18,7 +18,7 @@ public class JSONParser {
 			if(index == -1) {
 				throw new JSONParserException("no end sumbol '}'");
 			}else if(text.charAt(index) == '}') {
-				break;
+				return json;
 			}
 			String value = getKeyValue(index, text);
 			index += value.length();
@@ -46,7 +46,7 @@ public class JSONParser {
 			if(index == -1) {
 				throw new JSONParserException("no end sumbol ']'");
 			}else if(text.charAt(index) == ']') {
-				break;
+				return json;
 			}
 			String value = getValue(index, text);
 			index += value.length();
@@ -62,19 +62,19 @@ public class JSONParser {
 		return json;
 	}
 	
-	public static String parseString(String value) {
+	public static String parseString(String value) throws JSONParserException {
 		String result = "";
 		for(int i = 1; i < value.length(); i++) {
 			char el = value.charAt(i);
 			if(el == '"') {
-				break;
+				return result;
 			}else if(el == '\\') {
 				i++;
 				el = value.charAt(i);
 			}
 			result += el;
 		}
-		return result;
+		throw new JSONParserException("no end sumbol '\"'");
 	}
 	
 	public static Object parseOther(String value) {
@@ -84,9 +84,7 @@ public class JSONParser {
 			return false;
 		}else if(value.equals("null")) {
 			return null;
-		}
-		int point = value.indexOf('.');
-		if(point == -1) {
+		}else if(value.indexOf('.') == -1) {
 			return Long.parseLong(value);
 		}
 		return Double.parseDouble(value);
@@ -126,8 +124,7 @@ public class JSONParser {
 		for(int i = index + 1; i < value.length(); i++) {
 			char el = value.charAt(i);
 			if(el == '"') {
-				result += el;
-				break;
+				return result + el;
 			}else if(el == '\\') {
 				result += el;
 				i++;
@@ -135,7 +132,7 @@ public class JSONParser {
 			}
 			result += el;
 		}
-		return result;
+		throw new JSONParserException("no end sumbel '\"'");
 	}
 	
 	private static String getValueObject(int index, String value) throws JSONParserException{
@@ -143,8 +140,7 @@ public class JSONParser {
 		for(int i = index + 1; i < value.length(); i++) {
 			char el = value.charAt(i);
 			if(el == '}') {
-				result += el;
-				break;
+				return result + el;
 			}else if(el == ',' || el == ']' || isIndent(el)) {
 				result += el;
 			}else {
@@ -153,7 +149,7 @@ public class JSONParser {
 				result += v;
 			}
 		}
-		return result;
+		throw new JSONParserException("no end sumbel '}'");
 	}
 	
 	private static String getValueArray(int index, String value) throws JSONParserException {
@@ -161,8 +157,7 @@ public class JSONParser {
 		for(int i = index + 1; i < value.length(); i++) {
 			char el = value.charAt(i);
 			if(el == ']') {
-				result += ']';
-				break;
+				return result + el;
 			}else if(el == ',' || el == '}' || isIndent(el)) {
 				result += el;
 			}else {
@@ -171,7 +166,7 @@ public class JSONParser {
 				result += v;
 			}
 		}
-		return result;
+		throw new JSONParserException("no end sumbel ']'");
 	}
 	
 	private static String getValueOther(int index, String value) throws JSONParserException {
@@ -179,11 +174,11 @@ public class JSONParser {
 		for(int i = index; i < value.length(); i++) {
 			char el = value.charAt(i);
 			if(isIndent(el) || el == ',' || el == '}' || el == ']') {
-				break;
+				return result;
 			}
 			result += el;
 		}
-		return result;
+		throw new JSONParserException("not end json");
 	}
 	
 	private static String getValue(int index, String value) throws JSONParserException {
@@ -203,12 +198,11 @@ public class JSONParser {
 			if(el == ':') {
 				isValue = true;
 			}else if(!isIndent(el) && isValue){
-				result += getValue(i, value);
-				break;
+				return result + getValue(i, value);
 			}
 			result += el;
 		}
-		return result;
+		throw new JSONParserException("no end json");
 	}
 	
 	private static int positionStart(int index, String text, char start) throws JSONParserException {
@@ -219,7 +213,6 @@ public class JSONParser {
 			}else if(!isIndent(el)) {
 				throw new JSONParserException(i);
 			}
-			i++;
 		}
 		return -1;
 	}
