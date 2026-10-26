@@ -4,10 +4,37 @@
 	
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>ru.objectcat.jsonstruct</groupId>
+    <groupId>ru.object-cat.jsonstruct</groupId>
     <artifactId>jsonstruct</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
   </parent>
   <artifactId>json-base</artifactId>
+  
+  <name>JSON-Base</name>
+  <description>JSON parser</description>
+  <url>https://github.com/AP-JavaCod/json-base.git</url>
+  
+  <developers>
+  	<developer>
+  		<name>AP-JavaCod</name>
+  		<email>megafoh3g@gmail.com</email>
+  		<organization>AP-JavaCod</organization>
+  		<organizationUrl>https://github.com/AP-JavaCod</organizationUrl>
+  	</developer>
+  </developers>
+  
+  <scm>
+  	<connection>scm:git:git://github.com/AP-JavaCod/json-base.git</connection>
+  	<developerConnection>scm:git:git://github.com:AP-JavaCod/json-base.git</developerConnection>
+  	<url>https://github.com/AP-JavaCod/json-base.git</url>
+  </scm>
+  
+  <licenses>
+  	<license>
+  		<name>Apache License, version 2.0</name>
+  		<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+  		<distribution>repo</distribution>
+  	</license>
+  </licenses>
   
 </project>
