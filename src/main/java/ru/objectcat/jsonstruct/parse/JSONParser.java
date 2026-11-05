@@ -7,16 +7,16 @@ import ru.objectcat.jsonstruct.JSONParserException;
 public class JSONParser {
 	
 	public static JSONObject parseObject(String text) throws JSONParserException{
-		int index = positionStart(0, text, '{');
+		int index = positionStart(text, '{');
 		if(index == -1) {
-			throw new JSONParserException("no initial submol '{'");
+			throw new JSONParserException("no initial submol '{'", index);
 		}
 		JSONObject json = new JSONObject();
 		while(index < text.length() && text.charAt(index) != '}') {
 			index++;
 			index = positionElement(index, text);
 			if(index == -1) {
-				throw new JSONParserException("no end sumbol '}'");
+				throw new JSONParserException("no end sumbol '}'", index);
 			}else if(text.charAt(index) == '}') {
 				return json;
 			}
@@ -25,26 +25,26 @@ public class JSONParser {
 			json.add(parseKeyValue(value));
 			index = positionEnd(index, text);
 			if(index == -1) {
-				throw new JSONParserException("no sumbol ',' or '}'");
+				throw new JSONParserException("no sumbol ',' or '}'", index);
 			}
 		}
 		if(index == text.length()) {
-			throw new JSONParserException("no end sumbol '}'");
+			throw new JSONParserException("no end sumbol '}'", index);
 		}
 		return json;
 	}
 	
 	public static JSONArray parseArray(String text) throws JSONParserException {
-		int index = positionStart(0, text, '[');
+		int index = positionStart(text, '[');
 		if(index == -1) {
-			throw new JSONParserException("no initial sumbol '['");
+			throw new JSONParserException("no initial sumbol '['", index);
 		}
 		JSONArray json = new JSONArray();
 		while(index < text.length() && text.charAt(index) != ']') {
 			index++;
 			index = positionElement(index, text);
 			if(index == -1) {
-				throw new JSONParserException("no end sumbol ']'");
+				throw new JSONParserException("no end sumbol ']'", index);
 			}else if(text.charAt(index) == ']') {
 				return json;
 			}
@@ -53,11 +53,11 @@ public class JSONParser {
 			json.add(parseValue(value));
 			index = positionEnd(index, text);
 			if(index == -1) {
-				throw new JSONParserException("no sumbol ',' or ']' ");
+				throw new JSONParserException("no sumbol ',' or ']' ", index);
 			}
 		}
 		if(index == text.length()) {
-			throw new JSONParserException("no end sumbol ']'");
+			throw new JSONParserException("no end sumbol ']'", index);
 		}
 		return json;
 	}
@@ -110,7 +110,7 @@ public class JSONParser {
 			}else if(isIndent(el)) {
 				continue;	
 			}
-			throw new JSONParserException(i);
+			throw new JSONParserException("There is no ket and value separator", i);
 		}
 		i = positionElement(i + 1, text);
 		String valPars = text.substring(i);
@@ -205,13 +205,13 @@ public class JSONParser {
 		throw new JSONParserException("no end json");
 	}
 	
-	private static int positionStart(int index, String text, char start) throws JSONParserException {
-		for(int i = index; i < text.length(); i++) {
+	private static int positionStart(String text, char start){
+		for(int i = 0; i < text.length(); i++) {
 			char el = text.charAt(i);
 			if(el == start) {
 				return i;
 			}else if(!isIndent(el)) {
-				throw new JSONParserException(i);
+				return -1;
 			}
 		}
 		return -1;
@@ -227,13 +227,13 @@ public class JSONParser {
 		return -1;
 	}
 	
-	private static int positionEnd(int index, String text) throws JSONParserException{
+	private static int positionEnd(int index, String text){
 		for(int i = index; i < text.length(); i++) {
 			char el = text.charAt(i);
 			if(el == ',' || el == '}' || el == ']' ) {
 				return i;
 			}else if(!isIndent(el)) {
-				throw new JSONParserException(i);
+				return -1;
 			}
 		}
 		return -1;

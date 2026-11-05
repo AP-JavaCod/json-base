@@ -7,7 +7,6 @@ import ru.objectcat.jsonstruct.parse.JSONParser;
 
 public class JSONArray extends ArrayList<Object> {
 
-	
 	public static JSONArray instalArray(Object... elements) {
 		JSONArray array = new JSONArray();
 		for(Object el : elements) {

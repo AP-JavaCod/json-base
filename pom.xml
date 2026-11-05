@@ -24,8 +24,8 @@
   </developers>
   
   <scm>
-  	<connection>scm:git:git://github.com/AP-JavaCod/json-base.git</connection>
-  	<developerConnection>scm:git:git://github.com:AP-JavaCod/json-base.git</developerConnection>
+  	<connection>scm:git:git://://github.com/AP-JavaCod/json-base.git</connection>
+  	<developerConnection>scm:git:ssh://git@github.com:AP-JavaCod/json-base.git</developerConnection>
   	<url>https://github.com/AP-JavaCod/json-base.git</url>
   </scm>
   
