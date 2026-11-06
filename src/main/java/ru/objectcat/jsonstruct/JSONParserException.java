@@ -10,9 +10,5 @@ public class JSONParserException extends Exception{
 	public JSONParserException(int index) {
 		super("index: " + index + " syntax error JSON");
 	}
-	
-	public JSONParserException(String message, int index) {
-		super(message + " index: " + index + " syntax error JSON");
-	}
 
 }
